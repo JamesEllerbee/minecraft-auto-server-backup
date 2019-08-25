@@ -5,6 +5,7 @@ import time
 import threading
 import logging
 
+#todo: implement config 
 DEBUG = True
 process = None
 processOpen = False
@@ -14,7 +15,7 @@ beginThread = True
 def beginServer(mcdir):
     '''function contains logic to start server and to continue communicating with it.'''
     os.chdir(mcdir)
-    #java is in system path so using just 'java' works when invoking the server.jar
+    #java is in system path so using 'java' works when invoking the server.jar
     return subprocess.Popen(['java', '-Xmx4G', '-Xms4G', '-jar', 'server.jar', 'nogui'], stdin = subprocess.PIPE) 
 
 def commandServer(process, cmd):
@@ -30,12 +31,12 @@ def beginBackup(process, mcsdir, backuloc, worldName, startServer):
     '''this function handles backing up world file, returns the new server process'''
     gracePeriod = 30
     commandServer(process, "/stop")
-    print("Waiting %s seconds for server to stop..." % (gracePeriod))
+    print(">>> Waiting %s seconds for server to stop..." % (gracePeriod))
     time.sleep(gracePeriod)
     if process.returncode is None:
         process.terminate()
     print("Beginning backup...")
-    copyToOtherDir(mcsdir, backuloc + "\\" + worldName)
+    copyToOtherDir(mcsdir + "/" + worldName, backuloc + "/" + worldName) #todo: implement a better solution for pathing.
     print("Server Backed up sucessfully!")
     if startServer:
         return beginServer(mcsdir)
@@ -70,7 +71,7 @@ def timedBackup(mcsdir, backuloc, worldName):
 def timerManager(mcsDir, backuloc, worldName):
     global beginThread
     global process
-    print(">>timer management thread: beginning backup timer.")
+    print(">> timer management thread: beginning backup timer.")
     while True and (not process is None):
         if beginThread:
             timerThread = threading.Thread(target = timedBackup, args = (mcsDir, backUpLoc, worldName))
@@ -81,11 +82,12 @@ def main(mcsDir, backUpLoc, worldName):
     global process
     global processOpen
     command = ""
+    vaildScriptCommands = ['start','quit','start backup timer','backup','quit','/[anything]'] #use a dictonary to store commands and their def, need to figure out how to print both key and def tho.
     timerManagerThread = None
     #todo: add email functionality
-    print("Sever not started yet, use command 'start' to run the server program")
+    print("Warning: Sever not started yet, use command 'start' to run the server program!\nuse command 'help' to see a list of available commands.\nuse /[command] to send command to sever.")
     while command != "quit":
-        command = input(">>Enter command: <<\t")
+        command = input(">>> Enter command: <<<\t")
         command = command.lower()
         if command == "start":
             if process is None:
@@ -103,35 +105,35 @@ def main(mcsDir, backUpLoc, worldName):
             print("Command not implemented currently")
         elif command == 'backup':
             #user prompted backup before timer or exit
-            innerCommand = input("Restart server after backup?(y/n) << ")
+            innerCommand = input(">>>\tRestart server after backup?(y/n) <<<\n$")
             startServer = False
             if innerCommand == "y":
                 startServer = True
             processOpen = False
             process = beginBackup(process, mcsDir, backUpLoc, worldName, startServer)
             processOpen = True
-            print("Server restarted")
-        elif command == 'refresh':
-            commandServer(process, "/stop")
-            time.sleep(10)
-            process = beginServer(mcsDir)
-            print("Server Started")
+            if startServer:
+                print("Server restarted")
         elif command == 'quit':
             if not process is None:
                 commandServer(process, "/stop")
             if not timerManagerThread is None:
                 timerManagerThread.stop()
+        elif command == 'help':
+            print(vaildScriptCommands)
+            #todo: expand this
         else:
             commandServer(process, command) 
-    print("ending execution of script")
-#call to main
-print("Welcome to automated server backup script v1.0\n-- Written by James 'Joey' Ellerbee")
-mcsdir = ''
+    print("...End execution of script.")
+    
+#begin execution
+print("Welcome to automated server backup script v1\n-- Written by James 'Joey' Ellerbee")
 if not DEBUG:
     mcsdir = input("Input the directory containing server jar file... ")
 else:
-    mcsdir = r"C:\Users\ellerbee_james1\Documents\pythonprojects\minecraftserverscript\MCServer"
-#todo: implement config file
+    #using os.path for portability.
+    curdir = os.path.dirname(__file__)
+    mcsdir = os.path.join(curdir, 'MCServer')
 if mcsdir != "debug":
     worldName = ''
     backUpLoc = ''
@@ -140,7 +142,8 @@ if mcsdir != "debug":
         backUpLoc = input ("Input desired directory to store backups of minecraft world... ")
     else: 
         worldName = "world"
-        backUpLoc = r"C:\Users\ellerbee_james1\Documents\pythonprojects\minecraftserverscript\backups"     
+        curdir = os.path.dirname(__file__)
+        backUpLoc = os.path.join(curdir, 'backups')  
     if not os.path.exists(backUpLoc):
         #create backup directory if it does not exist
         os.mkdir(backUpLoc)
