@@ -4,9 +4,11 @@ import shutil
 import time
 import threading
 import logging
+import config
 
-#todo: implement config 
-DEBUG = True
+print("Welcome to automated server backup script!\n-- Written by James 'Joey' Ellerbee")
+
+config.read()
 process = None
 processOpen = False
 ignoreTimedBackup = False
@@ -68,13 +70,13 @@ def timedBackup(mcsdir, backuloc, worldName):
         processOpen = True
     beginThread = True
 
-def timerManager(mcsDir, backuloc, worldName):
+def timerManager(mcsDir, backUploc, worldName):
     global beginThread
     global process
     print(">> timer management thread: beginning backup timer.")
     while True and (not process is None):
         if beginThread:
-            timerThread = threading.Thread(target = timedBackup, args = (mcsDir, backUpLoc, worldName))
+            timerThread = threading.Thread(target = timedBackup, args = (mcsDir, backUploc, worldName))
             timerThread.start()
             beginThread = False
 
@@ -85,7 +87,7 @@ def main(mcsDir, backUpLoc, worldName):
     vaildScriptCommands = ['start','quit','start backup timer','backup','quit','/[anything]'] #use a dictonary to store commands and their def, need to figure out how to print both key and def tho.
     timerManagerThread = None
     #todo: add email functionality
-    print("Warning: Sever not started yet, use command 'start' to run the server program!\nuse command 'help' to see a list of available commands.\nuse /[command] to send command to sever.")
+    print("!!Warning!!hel: Sever not started yet, use command 'start' to run the server program!\nuse command 'help' to see a list of available commands.\nuse /[command] to send command to sever.")
     while command != "quit":
         command = input(">>> Enter command: <<<\t")
         command = command.lower()
@@ -125,10 +127,8 @@ def main(mcsDir, backUpLoc, worldName):
         else:
             commandServer(process, command) 
     print("...End execution of script.")
-    
-#begin execution
-print("Welcome to automated server backup script v1\n-- Written by James 'Joey' Ellerbee")
-if not DEBUG:
+
+''' if not DEBUG:
     mcsdir = input("Input the directory containing server jar file... ")
 else:
     #using os.path for portability.
@@ -146,5 +146,5 @@ if mcsdir != "debug":
         backUpLoc = os.path.join(curdir, 'backups')  
     if not os.path.exists(backUpLoc):
         #create backup directory if it does not exist
-        os.mkdir(backUpLoc)
-    main(mcsdir, backUpLoc, worldName)
+        os.mkdir(backUpLoc) '''
+main(config.mcsdir, config.backUpLoc, config.worldName)
