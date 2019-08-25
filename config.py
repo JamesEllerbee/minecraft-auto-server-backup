@@ -5,6 +5,7 @@ import os
 mcsdir = ''
 worldName = ''
 backUpLoc = ''
+timeBeforeBackup = 0
 
 def conFErr(configF):
     print("Issue with config file, try deleting it and running the script again.") #will update this to be more useful in future iteration
@@ -29,6 +30,7 @@ def read():
         newConfigFile.write('server directory=' + mcsdir + '\n')
         newConfigFile.write('world name=' + worldName + '\n')
         newConfigFile.write('backup location=' + backUpLoc + '\n')
+        newConfigFile.write('time before backup=' + 3600 + '\n')
         newConfigFile.close()
         print("config created...")
     print("Reading config file...")
@@ -59,6 +61,13 @@ def read():
             #create backup directory if it does not exist
             print("It does not appear that directory exists, creating directory...")
             os.mkdir(backUpLoc)
+    else:
+        conFErr(configF)
+    inStr = configF.readline()
+    inStr = inStr.split('=')
+    if inStr[0] == 'time before backup':
+        timeBeforeBackup = int(inStr[1])
+        print("time before back up: "+ timeBeforeBackup + " seconds.")
     else:
         conFErr(configF)
     configF.close()

@@ -56,7 +56,7 @@ def timedBackup(mcsdir, backuloc, worldName):
     global processOpen
     global beginThread
     print("Thread: timer began")
-    timeBeforeBackup = 60
+    timeBeforeBackup = config.timeBeforeBackup
     timeStart = time.time()
     lap = timeStart
     while lap - timeStart < timeBeforeBackup:
@@ -84,10 +84,11 @@ def main(mcsDir, backUpLoc, worldName):
     global process
     global processOpen
     command = ""
-    vaildScriptCommands = ['start','quit','start backup timer','backup','quit','/[anything]'] #use a dictonary to store commands and their def, need to figure out how to print both key and def tho.
+    scriptCommands = ['start','quit','start backup timer','backup','quit','/[anything]'] #use a dictonary to store commands and their def, need to figure out how to print both key and def tho.
+    scriptCommandDesc = ['use this command to begin server.jar','','','','','use this to send command to server']
     timerManagerThread = None
     #todo: add email functionality
-    print("!!Warning!!hel: Sever not started yet, use command 'start' to run the server program!\nuse command 'help' to see a list of available commands.\nuse /[command] to send command to sever.")
+    print("!!Warning!! Sever not started yet, use command 'start' to run the server program!\nuse command 'help' to see a list of available commands and their descriptions.\nuse /[command] to send command to sever.")
     while command != "quit":
         command = input(">>> Enter command: <<<\t")
         command = command.lower()
@@ -122,8 +123,9 @@ def main(mcsDir, backUpLoc, worldName):
             if not timerManagerThread is None:
                 timerManagerThread.stop()
         elif command == 'help':
-            print(vaildScriptCommands)
-            #todo: expand this
+            #todo:improve this
+            print(scriptCommands)
+            print(scriptCommandDesc)
         else:
             commandServer(process, command) 
     print("...End execution of script.")
